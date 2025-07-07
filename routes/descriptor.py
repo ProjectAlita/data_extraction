@@ -303,7 +303,7 @@ class Route:
                     "async_invocation_supported": False
                 },
                 {
-                    "name": "get_github_repositories_list_extended",
+                    "name": "get_github_repository_list_extended",
                     "args_schema": {
                         "pushed_after": {"type": "String", "required": True, "description": "Get repositories pushed after this date 'YYYY-MM-DD'."}
                     },

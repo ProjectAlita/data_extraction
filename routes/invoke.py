@@ -324,7 +324,7 @@ class Route:
                         raise ValueError("Missing required parameter: 'pushed_after'")
 
                     result, message = self.get_repositories(github, pushed_after)
-                elif tool_name == "get_repositories_list_extended":
+                elif tool_name == "get_github_repository_list_extended":
                     pushed_after = tool_params.get("pushed_after")
                     if not pushed_after:
                         raise ValueError("Missing required parameter: 'pushed_after'")
