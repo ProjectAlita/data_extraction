@@ -1,0 +1,7 @@
+{
+  "name": "Host for tools: DataExtraction",
+  "version": "1.0.0",
+  "description": "Plugin for data extraction from Jira, ADO, GitHub, and GitLab.",
+  "depends_on": [],
+  "init_after": []
+}
