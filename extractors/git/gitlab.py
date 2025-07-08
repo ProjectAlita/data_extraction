@@ -23,7 +23,7 @@ class GitLabV4():
         self.project_id = project_id
         self.default_branch_name = default_branch_name
         self.token = token
-        self.reponse_code_handler = e.ResponseCodeHandler(project_id)
+        self.response_code_handler = e.ResponseCodeHandler(project_id)
 
     def _load_data(self, url_suffix: str) -> tuple[bool, pd.DataFrame]:
         '''
@@ -31,8 +31,8 @@ class GitLabV4():
         '''
         request_url = f"https://{self.url}/api/v4/projects/{self.project_id}/{url_suffix}"
         headers = {"PRIVATE-TOKEN": f"{self.token}"} if self.token else {}
-        req = requests.get(request_url, headers=headers)  # pylint: disable=missing-timeout
-        self.reponse_code_handler.process_response_code(req.status_code)
+        req = requests.get(request_url, headers=headers, timeout=30)
+        self.response_code_handler.process_response_code(req.status_code)
 
         next_page = req.headers.get('X-Next-Page')
         is_next_page_exist = bool(next_page)
