@@ -5,7 +5,7 @@ import requests
 
 
 def repeat_request(repeat_num=10):
-    """Decorator that repeat requests in case of fails."""
+    """Decorator that repeats requests in case of failures."""
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):

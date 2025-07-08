@@ -25,14 +25,6 @@ class Method:
             "tool_version": "0.0.0",
         }
         
-        # Merge with user config
-        for key, default in defaults.items():
-            config[key] = self.descriptor.config.get(key, default)
-        
-        # Ensure paths are absolute
-        if "base_path" in config:
-            config["base_path"] = os.path.abspath(config["base_path"])
-        
         for key, default in defaults.items():
             # Get from config file (which may have env var references)
             value = self.descriptor.config.get(key, default)
@@ -49,6 +41,10 @@ class Method:
                         raise ValueError(f"Required environment variable {env_spec} not set")
 
             config[key] = value
+
+        # Ensure paths are absolute
+        if "base_path" in config:
+            config["base_path"] = os.path.abspath(config["base_path"])
 
         return config
 

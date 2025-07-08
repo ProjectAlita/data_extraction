@@ -1,6 +1,7 @@
 ''' Module for searching and extracting data from GitLab. '''
 from functools import wraps
 from typing import Optional
+import logging
 import requests
 import pandas as pd
 
@@ -8,7 +9,7 @@ from ..utils import exceptions as e
 from ..utils.read_config import GitConfig
 from ..git.gitlab import GitLabV4
 
-CONFIG_PATH = './conf/config.yml'
+CONFIG_PATH = './config.yml'
 
 
 def loop_projects(data: list[dict]) -> tuple[list, list]:
@@ -21,18 +22,18 @@ def loop_projects(data: list[dict]) -> tuple[list, list]:
         projects_id = prj['id']
         project_name = prj['name']
         description = prj['description']
-        commits_num = None
         http_url_to_repo = prj['http_url_to_repo']
         web_url = prj['web_url']
-        default_branch = None
         try:
             default_branch = prj['default_branch']
         except KeyError:
-            pass
+            logging.debug(f"No default_branch field found for project {projects_id}")
+            default_branch = None
         try:
             commits_num = prj['statistics']['commit_count']
         except KeyError:
-            pass
+            logging.debug(f"No commit statistics found for project {projects_id}")
+            commits_num = None
         projects_ids += [projects_id]
         projects_lst += [
             [projects_id, project_name, description, commits_num, http_url_to_repo, web_url, default_branch]]
