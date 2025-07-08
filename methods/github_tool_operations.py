@@ -5,7 +5,7 @@
 
 from typing import Any, Dict, Optional
 
-from ..extractgitors.github.github_org import GitHubGetOrgLvl
+from ..extractors.github.github_org import GitHubGetOrgLvl
 from ..extractors.github.main_github import (
    extract_commits_from_multiple_repos,
    extract_pull_requests_from_multiple_repos,
