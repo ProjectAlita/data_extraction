@@ -1,6 +1,7 @@
 ''' Module for searching and extracting data from GitLab. '''
 from functools import wraps
 from typing import Optional
+import logging
 import requests
 import pandas as pd
 
@@ -8,7 +9,7 @@ from ..utils import exceptions as e
 from ..utils.read_config import GitConfig
 from ..git.gitlab import GitLabV4
 
-CONFIG_PATH = './conf/config.yml'
+CONFIG_PATH = './config.yml'
 
 
 def loop_projects(data: list[dict]) -> tuple[list, list]:
@@ -21,18 +22,18 @@ def loop_projects(data: list[dict]) -> tuple[list, list]:
         projects_id = prj['id']
         project_name = prj['name']
         description = prj['description']
-        commits_num = None
         http_url_to_repo = prj['http_url_to_repo']
         web_url = prj['web_url']
-        default_branch = None
         try:
             default_branch = prj['default_branch']
         except KeyError:
-            pass
+            logging.debug(f"No default_branch field found for project {projects_id}")
+            default_branch = None
         try:
             commits_num = prj['statistics']['commit_count']
         except KeyError:
-            pass
+            logging.debug(f"No commit statistics found for project {projects_id}")
+            commits_num = None
         projects_ids += [projects_id]
         projects_lst += [
             [projects_id, project_name, description, commits_num, http_url_to_repo, web_url, default_branch]]
@@ -58,13 +59,13 @@ def add_merge_req_info(func):
         if not isinstance(result, pd.DataFrame) and not result:
             return None
         for prj in result['projects_id'].to_list():
-            git_project = GitLabV4(url=url, project_id=prj, default_branch_name='master', token=token)
+            git_project = GitLabV4(url=url, project_id=prj, default_branch_name=instance.default_branch_name, token=token)
             count_merge_req += [git_project.get_merge_req_state_count()]
         merge_req_df = pd.DataFrame(count_merge_req)
-        merge_req_df.columns = ['pull_req_opened', 'pull_req_closed', 'pull_req_merged', 'projects_id']
+        merge_req_df.columns = ['open', 'closed', 'merged', 'projects_id']
         projects = result.merge(merge_req_df, on='projects_id')
-        projects['pull_req_total'] = projects['pull_req_merged'] + projects['pull_req_closed'] + projects[
-            'pull_req_opened']
+        projects['pull_req_total'] = projects['merged'] + projects['closed'] + projects[
+            'open']
         projects = projects.sort_values(['pull_req_total'], ascending=False)
         return projects
 
@@ -90,7 +91,7 @@ def add_branches_info(func):
         if not isinstance(result, pd.DataFrame) and not result:
             return None
         for prj in result['projects_id'].to_list():
-            git_project = GitLabV4(url=url, project_id=prj, default_branch_name='master', token=token)
+            git_project = GitLabV4(url=url, project_id=prj, default_branch_name=instance.default_branch_name, token=token)
             try:
                 branches_df = git_project.get_repo_branches()
                 if branches_df is not None:
@@ -125,7 +126,7 @@ class GitLabV4Search:
 
         request_url = f"https://{self.url}/api/v4/{url_suffix}"
         headers = {"PRIVATE-TOKEN": f"{self.token}"} if self.token else {}
-        req = requests.get(request_url, headers=headers)  # pylint: disable=missing-timeout
+        req = requests.get(request_url, headers=headers, timeout=30)
         if req.status_code == 404:
             raise e.NotFoundException(CONFIG_PATH)
         if req.status_code != 200:

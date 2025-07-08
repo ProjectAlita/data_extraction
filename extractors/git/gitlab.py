@@ -23,7 +23,7 @@ class GitLabV4():
         self.project_id = project_id
         self.default_branch_name = default_branch_name
         self.token = token
-        self.reponse_code_handler = e.ResponseCodeHandler(project_id)
+        self.response_code_handler = e.ResponseCodeHandler(project_id)
 
     def _load_data(self, url_suffix: str) -> tuple[bool, pd.DataFrame]:
         '''
@@ -31,8 +31,8 @@ class GitLabV4():
         '''
         request_url = f"https://{self.url}/api/v4/projects/{self.project_id}/{url_suffix}"
         headers = {"PRIVATE-TOKEN": f"{self.token}"} if self.token else {}
-        req = requests.get(request_url, headers=headers)  # pylint: disable=missing-timeout
-        self.reponse_code_handler.process_response_code(req.status_code)
+        req = requests.get(request_url, headers=headers, timeout=30)
+        self.response_code_handler.process_response_code(req.status_code)
 
         next_page = req.headers.get('X-Next-Page')
         is_next_page_exist = bool(next_page)
@@ -124,10 +124,10 @@ class GitLabV4():
         '''
         request_url = f"https://{self.url}/api/v4/projects/{self.project_id}" + \
                       f"/merge_requests?state=all&per_page=100&page={page}"
-        merge_req_state_count = {'Open': None, 'Closed': None, 'Merged': None, 'projects_id': self.project_id}
+        merge_req_state_count = {'open': None, 'closed': None, 'merged': None, 'projects_id': self.project_id}
         data_fin = []
         while True:
-            r = requests.get(request_url, headers={"PRIVATE-TOKEN": f"{self.token}"})  # pylint: disable=missing-timeout
+            r = requests.get(request_url, headers={"PRIVATE-TOKEN": f"{self.token}"}, timeout=30)
 
             if r.status_code in [403, 404]:
                 logging.warning(f'Error {r.status_code} while getting merge requests for the project {self.project_id}')
@@ -143,9 +143,9 @@ class GitLabV4():
 
         if data_fin:
             merge_req_state = [item['state'] for item in data_fin]
-            merge_req_state_count.update({'Open': merge_req_state.count("opened"),
-                                          'Closed': merge_req_state.count("closed"),
-                                          'Merged': merge_req_state.count("merged")})
+            merge_req_state_count.update({'open': merge_req_state.count("opened"),
+                                          'closed': merge_req_state.count("closed"),
+                                          'merged': merge_req_state.count("merged")})
 
         return merge_req_state_count
 
