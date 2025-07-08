@@ -124,10 +124,10 @@ class GitLabV4():
         '''
         request_url = f"https://{self.url}/api/v4/projects/{self.project_id}" + \
                       f"/merge_requests?state=all&per_page=100&page={page}"
-        merge_req_state_count = {'Open': None, 'Closed': None, 'Merged': None, 'projects_id': self.project_id}
+        merge_req_state_count = {'open': None, 'closed': None, 'merged': None, 'projects_id': self.project_id}
         data_fin = []
         while True:
-            r = requests.get(request_url, headers={"PRIVATE-TOKEN": f"{self.token}"})  # pylint: disable=missing-timeout
+            r = requests.get(request_url, headers={"PRIVATE-TOKEN": f"{self.token}"}, timeout=30)
 
             if r.status_code in [403, 404]:
                 logging.warning(f'Error {r.status_code} while getting merge requests for the project {self.project_id}')
@@ -143,9 +143,9 @@ class GitLabV4():
 
         if data_fin:
             merge_req_state = [item['state'] for item in data_fin]
-            merge_req_state_count.update({'Open': merge_req_state.count("opened"),
-                                          'Closed': merge_req_state.count("closed"),
-                                          'Merged': merge_req_state.count("merged")})
+            merge_req_state_count.update({'open': merge_req_state.count("opened"),
+                                          'closed': merge_req_state.count("closed"),
+                                          'merged': merge_req_state.count("merged")})
 
         return merge_req_state_count
 

@@ -3,7 +3,7 @@
 
 
 class ResponseCodeHandler:
-    """This lass handles response codes from the API."""
+    """This class handles response codes from the API."""
     def __init__(self, project_id):
         self.project_id = project_id
 
@@ -34,7 +34,7 @@ class AbsentAccessToRepository(Exception):
 class UnauthorizedAccess(Exception):
     """Exception for the case when the user has no access to the project."""
     def __init__(self, project_id):
-        super().__init__(f"Check yours authentication credentials for {project_id}")
+        super().__init__(f"Check your authentication credentials for {project_id}")
 
 
 class Unknown(Exception):
