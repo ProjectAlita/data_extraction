@@ -122,7 +122,23 @@ class Route:
                     "async_invocation_supported": False
                 }
             ],
-            "toolkit_metadata": {}
+            "toolkit_metadata": {
+                "sections": {
+                    "auth": {
+                        "required": True,
+                        "subsections": [
+                            {
+                                "fields": ["toolkit_configuration_api_key"],
+                                "name": "Api key"
+                            },
+                            {
+                                "fields": ["toolkit_configuration_token"],
+                                "name": "Token"
+                            }
+                        ]
+                    }
+                }
+            }
         }
 
         ado_toolkit = {
