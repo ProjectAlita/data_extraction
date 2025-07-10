@@ -54,7 +54,7 @@ class Route:
                                     if k not in ["username", "token", "api_key"]}
         log.info(f"Toolkit parameters: {safe_toolkit_params}")
         log.info(f"Tool parameters: {tool_params}")
-        
+        message = ""
         try:
             if toolkit_name == "JiraDataExtractorToolkit":
                 jira_credentials = {
@@ -89,7 +89,7 @@ class Route:
                 for key in toolkit_params_keys:
                     if key not in toolkit_params:
                         raise ValueError(f"Missing required toolkit parameter: {key}")
-                    
+
                 project_keys = tool_params.get("project_keys") or toolkit_params.get("project_keys", "")
 
                 # Route to appropriate tool
@@ -108,7 +108,7 @@ class Route:
 
                     custom_fields = toolkit_params.get("custom_fields", {}) 
                     log.info(f"Custom fields for Jira issues: {custom_fields}")
-                    
+
                     # Validate and set closed_issues_based_on
                     closed_issues_based_on_value = toolkit_params.get("closed_issues_based_on", 1)
                     if closed_issues_based_on_value in [1, '1']:
@@ -117,7 +117,7 @@ class Route:
                         closed_issues_based_on = 2
                     else:
                         raise ValueError("Invalid value for closed_issues_based_on. Expected 1 (based on status) or 2 (based on resolved date).")
-                    
+
                     result, message = self.get_jira_issues(
                         jira,
                         project_keys,
@@ -222,7 +222,7 @@ class Route:
 
                 if not base_url or not token:
                     raise ValueError("GitLab base URL and token must be provided in the configuration.")
-                
+
                 # Initialize GitLab search client
                 gitlab_search = GitLabV4Search(
                     url=base_url,
@@ -263,7 +263,7 @@ class Route:
                     since_date = tool_params.get("since_date")
                     if not since_date:
                         raise ValueError("Missing required parameter: 'since_date'")
-                    
+
                     project_ids = tool_params.get("project_ids") or toolkit_params.get("project_ids", "")
                     if not project_ids:
                         raise ValueError("Missing required parameter: 'project_ids'")
@@ -273,7 +273,7 @@ class Route:
                     since_date = tool_params.get("since_date")
                     if not since_date:
                         raise ValueError("Missing required parameter: 'since_date'")
-                    
+
                     project_ids = tool_params.get("project_ids") or toolkit_params.get("project_ids", "")
 
                     if not project_ids:
@@ -300,9 +300,9 @@ class Route:
                         "message": "Invalid GitHub configuration",
                         "details": ["GitHub instance could not be initialized with provided parameters."],
                     }, 400
-                
+
                 log.info(f"GitHub connection established successfully {github}")
-                
+
                 repos = toolkit_params.get("repos", "") or tool_params.get("repos", "")
 
                 # Route to appropriate tool
@@ -324,7 +324,7 @@ class Route:
                         raise ValueError("Missing required parameter: 'pushed_after'")
 
                     result, message = self.get_repositories(github, pushed_after)
-                elif tool_name == "get_github_repository_list_extended":
+                elif tool_name == "get_repositories_list_extended":
                     pushed_after = tool_params.get("pushed_after")
                     if not pushed_after:
                         raise ValueError("Missing required parameter: 'pushed_after'")
@@ -336,7 +336,7 @@ class Route:
                         "message": "Tool not found",
                         "details": [f"Unknown tool: {tool_name}"],
                     }, 404
-                   
+
             # For result_composition: "list_of_objects", return list with message and csv_data objects
             result_objects = [
                 {
@@ -363,9 +363,9 @@ class Route:
 
         except Exception as e:
             log.exception(f"Tool invocation failed: {toolkit_name}:{tool_name}")
-            
+
             error_message = str(e)
-            
+
             if toolkit_name == "JiraDataExtractorToolkit":
                 # Check for JIRA field validation errors
                 if "fields are not valid or do not exist in your JIRA instance" in error_message:
@@ -378,7 +378,7 @@ class Route:
                             "You can find available fields in JIRA Administration > Issues > Custom fields."
                         ],
                     }, 400
-                
+
                 # Check for specific JIRA authentication failure
                 if "JIRA authentication failed" in error_message:
                     return {
@@ -390,7 +390,7 @@ class Route:
                             "Your JIRA session may have expired or the credentials may be invalid."
                         ],
                     }, 401
-                
+
                 # Check for JSON decode error (also indicates auth issues)
                 if "Expecting value: line 1 column 1 (char 0)" in error_message:
                     return {
@@ -402,7 +402,7 @@ class Route:
                             "This usually happens when your JIRA session has expired."
                         ],
                     }, 401
-            
+
             return {
                 "errorCode": "500",
                 "message": "Internal server error",
